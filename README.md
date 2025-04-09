@@ -11,7 +11,7 @@
 
 ## Bowling Performance
 
-![image](https://github.com/user-attachments/assets/0c91a850-d380-47d4-beaf-dd35aa4ea2a6)
+![image](https://github.com/user-attachments/assets/e363eba1-6c96-4621-8780-a83c240dd7ca)
 
 
 This project uses Power BI to present a deep-dive data analysis of the T20 World Cup 2024. It leverages ball-by-ball delivery data and match-level summaries to uncover team strategies, player performance, and match-winning patterns. Built for data storytelling, this dashboard provides interactive visuals and analytical KPIs that uncover meaningful cricket insights.
