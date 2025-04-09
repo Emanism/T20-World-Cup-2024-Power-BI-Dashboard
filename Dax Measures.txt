@@ -1,0 +1,81 @@
+OVERALL SECTION KPIs
+
+Total_Matches = COUNT('Matches'[match_number])
+
+TossWin_MatchWin = 
+CALCULATE(
+    COUNTROWS('Matches'),
+    'Matches'[toss_winner] = 'Matches'[winner]
+)
+
+Max_Run_Margin = MAX('Matches'[winner_runs])
+
+Max_Wicket_Margin = MAX('Matches'[winner_wickets])
+
+-- TossWin_SameAsMatchWin Column (Calculated Column)
+TossWin_SameAsMatchWin = 
+IF('Matches'[toss_winner] = 'Matches'[winner], "Yes", "No")
+
+-- Win_Type Column (Calculated Column)
+Win_Type = 
+IF(NOT(ISBLANK('Matches'[winner_runs])),
+   "Won by Runs",
+   IF(NOT(ISBLANK('Matches'[winner_wickets])), "Won by Wickets", "No Result")
+)
+
+BATSMAN SECTION KPIs
+
+Total_Runs = SUM('Deliveries'[runs_of_bat])
+
+Total_Fours = 
+COUNTROWS(FILTER('Deliveries', 'Deliveries'[runs_of_bat] = 4))
+
+Total_Sixes = 
+COUNTROWS(FILTER('Deliveries', 'Deliveries'[runs_of_bat] = 6))
+
+Total_Boundaries = [Total_Fours] + [Total_Sixes]
+
+Highest_Individual_Score = 
+MAXX(
+    SUMMARIZE('Deliveries', 'Deliveries'[match_id], 'Deliveries'[batter],
+        "Runs", SUM('Deliveries'[runs_of_bat])
+    ),
+    [Runs]
+)
+
+Balls_Faced = 
+CALCULATE(
+    COUNTROWS('Deliveries'),
+    'Deliveries'[wide] = 0 && 'Deliveries'[noballs] = 0
+)
+
+BOWLING SECTION KPIs
+
+Total_Wickets = 
+COUNTROWS(FILTER('Deliveries', NOT(ISBLANK('Deliveries'[player_dismissed]))))
+
+Most_Wickets_Single_Match = 
+MAXX(
+    SUMMARIZE('Deliveries', 'Deliveries'[match_id], 'Deliveries'[bowler],
+        "Wickets", COUNTROWS(FILTER('Deliveries', NOT(ISBLANK('Deliveries'[player_dismissed]))))
+    ),
+    [Wickets]
+)
+
+Runs_Conceded = 
+SUMX('Deliveries', 'Deliveries'[runs_of_bat] + 'Deliveries'[extras])
+
+-- Best Economy Rate (min 30 balls)
+Best_Economy = 
+VAR BowlerTable = 
+    ADDCOLUMNS(
+        SUMMARIZE('Deliveries', 'Deliveries'[bowler]),
+        "Balls", CALCULATE(COUNTROWS('Deliveries'), 'Deliveries'[wide] = 0, 'Deliveries'[noballs] = 0),
+        "Runs", CALCULATE(SUM('Deliveries'[runs_of_bat] + 'Deliveries'[extras]))
+    )
+VAR Qualified = 
+    FILTER(BowlerTable, [Balls] >= 30)
+VAR WithEconomy = 
+    ADDCOLUMNS(Qualified, "Economy", DIVIDE([Runs], [Balls]/6))
+RETURN
+MINX(WithEconomy, [Economy])
